@@ -80,7 +80,7 @@ class Read(object):
 class Check(object):
     def __init__(self):
         self.file = [
-            "/data/list.user",
+            "/data/list.json",
             "/Captcha.yaml",
         ]
         self.dir = [
