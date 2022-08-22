@@ -7,6 +7,8 @@ import telebot
 import json, joblib
 from telebot import types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.async_telebot import AsyncTeleBot
+import asyncio, aiohttp
 
 
 def load_config():
@@ -22,7 +24,7 @@ def save_config():
 
 def Master(bot, config):
     @bot.message_handler(content_types=['text'])
-    def replay(message, items=None):
+    async def replay(message, items=None):
         userID = message.from_user.id
         if str(userID) == config.ClientBot.owner:
             try:
@@ -30,41 +32,36 @@ def Master(bot, config):
                 command = message.text
                 if command == "off":
                     joblib.dump("off", 'life.pkl')
-                    bot.reply_to(message, 'success！')
+                    await bot.reply_to(message, 'success！')
                 if command == "on":
                     joblib.dump("on", 'life.pkl')
-                    bot.reply_to(message, 'success！')
+                    await bot.reply_to(message, 'success！')
             except Exception as e:
-                bot.reply_to(message, "Wrong:" + str(e))
+                await bot.reply_to(message, "Wrong:" + str(e))
 
 
 def Group(bot, config):
     # if bot is added to group, this handler will work
     @bot.my_chat_member_handler()
-    def my_chat_m(message: types.ChatMemberUpdated):
+    async def my_chat_m(message: types.ChatMemberUpdated):
         old = message.old_chat_member
         new = message.new_chat_member
         if new.status == "member":
             load_config()
-            print(_config)
+            # print(_config)
             if message.chat.id in _config.get("whiteGroup"):
-                bot.send_message(message.chat.id,
-                                 "Hello bro! i can use high level problem to verify new chat member~~")
+                pass
+                # bot.send_message(message.chat.id,
+                #                 "Hello bro! i can use high level problem to verify new chat member~~")
             else:
-                if  _config.get("whiteGroupSwitch"):
-                    bot.send_message(message.chat.id,
-                                     "Somebody added me to THIS group,but the group not in my white list")
-                    bot.leave_chat(message.chat.id)
-
-    @bot.chat_member_handler()
-    def chat_m(message: types.ChatMemberUpdated):
-        old = message.old_chat_member
-        new = message.new_chat_member
-        print("222")
+                if _config.get("whiteGroupSwitch"):
+                    await bot.send_message(message.chat.id,
+                                           "Somebody added me to THIS group,but the group not in my white list")
+                    await bot.leave_chat(message.chat.id)
         if new.status == "member":
             InviteLink = "123"
             mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
             mrkplink.add(InlineKeyboardButton("click here to verify yourself🚀", url=InviteLink))
-            bot.send_message(message.chat.id, "Hello {name}!, Pleas  Click the link below to verify".format(
+            await bot.send_message(message.chat.id, "Hello {name}!, Pleas  Click the link below to verify".format(
                 name=new.user.first_name),
-                             reply_markup=mrkplink)  # Welcome message
+                                   reply_markup=mrkplink)  # Welcome message

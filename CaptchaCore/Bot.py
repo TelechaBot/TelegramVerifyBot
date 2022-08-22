@@ -3,12 +3,14 @@
 # @FileName: Bot.py
 # @Software: PyCharm
 # @Github    ：sudoskys
+import aiohttp
 from pathlib import Path
 import joblib, json
 from CaptchaCore.Event import Tool
 import telebot
 from telebot import types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.async_telebot import AsyncTeleBot
 
 
 class clinetBot(object):
@@ -31,24 +33,26 @@ class clinetBot(object):
         if config.statu:
             Tool().console.print("Bot Running", style='blue')
             import telebot
+            from telebot.async_telebot import AsyncTeleBot
             import joblib
-            bot = telebot.TeleBot(config.botToken)
+            bot = AsyncTeleBot(config.botToken)
             joblib.dump("on", 'life.pkl')
             from CaptchaCore.BotEvent import Master
             from CaptchaCore.BotEvent import Group
 
             @bot.message_handler(commands=['start'])
-            def send_welcome(message):
-                bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
+            async def send_welcome(message):
+                await bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
 
             @bot.message_handler(commands=['about'])
-            def send_about(message):
-                bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
+            async def send_about(message):
+                await bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
 
-            Master(bot, config)
-            Group(bot, config)
-
-            bot.infinity_polling()
+            # Master(bot, config)
+            # Group(bot, config)
+            import asyncio
+            asyncio.run(bot.polling())  # allowed_updates=util.update_types))
+            # bot.infinity_polling()
 
 
 class sendBot(object):
