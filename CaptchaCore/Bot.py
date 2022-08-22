@@ -42,16 +42,19 @@ class clinetBot(object):
 
             @bot.message_handler(commands=['start'])
             async def send_welcome(message):
-                await bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
+                if message.chat.type == "private":
+                    await bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
 
             @bot.message_handler(commands=['about'])
             async def send_about(message):
-                await bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
+                if message.chat.type == "private":
+                    await bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
 
-            # Master(bot, config)
-            # Group(bot, config)
+            Master(bot, config)
+            Group(bot, config)
+
             import asyncio
-            asyncio.run(bot.polling())  # allowed_updates=util.update_types))
+            asyncio.run(bot.polling(allowed_updates=util.update_types))
             # bot.infinity_polling()
 
 
