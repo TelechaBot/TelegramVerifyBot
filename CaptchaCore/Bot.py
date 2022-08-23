@@ -13,6 +13,17 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.async_telebot import AsyncTeleBot
 
 
+def load_config():
+    global _config
+    with open("config.json", encoding="utf-8") as f:
+        _config = json.load(f)
+
+
+def save_config():
+    with open("config.json", "w", encoding="utf8") as f:
+        json.dump(_config, f, indent=4, ensure_ascii=False)
+
+
 class clinetBot(object):
     def __init__(self):
         pass
@@ -30,32 +41,36 @@ class clinetBot(object):
             return False
 
     def run(self, config):
-        if config.statu:
+        load_config()
+        if _config.statu:
             Tool().console.print("Bot Running", style='blue')
-            import telebot
-            from telebot.async_telebot import AsyncTeleBot
-            import joblib
             bot = AsyncTeleBot(config.botToken)
-            joblib.dump("on", 'life.pkl')
             from CaptchaCore.BotEvent import Master
             from CaptchaCore.BotEvent import Group
-
-            @bot.message_handler(commands=['start'])
-            async def send_welcome(message):
-                if message.chat.type == "private":
-                    await bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
-
-            @bot.message_handler(commands=['about'])
-            async def send_about(message):
-                if message.chat.type == "private":
-                    await bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
+            @bot.message_handler(content_types=['text'])
+            async def replay(message, items=None):
+                userID = message.from_user.id
+                if str(userID) == config.ClientBot.owner:
+                    try:
+                        # chat_id = message.chat.id
+                        command = message.text
+                        if command == "off":
+                            _config["status"] = False
+                            save_config()
+                            await bot.reply_to(message, 'success！')
+                        if command == "on":
+                            _config["status"] = True
+                            save_config()
+                            await bot.reply_to(message, 'success！')
+                    except Exception as e:
+                        await bot.reply_to(message, "Wrong:" + str(e))
 
             Master(bot, config)
             Group(bot, config)
 
             import asyncio
             asyncio.run(bot.polling(allowed_updates=util.update_types))
-            # bot.infinity_polling()
+        # bot.infinity_polling()
 
 
 class sendBot(object):

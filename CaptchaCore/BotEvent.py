@@ -13,31 +13,25 @@ import asyncio, aiohttp
 
 def load_config():
     global _config
-    with open("Group.json", encoding="utf-8") as f:
+    with open("config.json", encoding="utf-8") as f:
         _config = json.load(f)
 
 
 def save_config():
-    with open("Group.json", "w", encoding="utf8") as f:
+    with open("config.json", "w", encoding="utf8") as f:
         json.dump(_config, f, indent=4, ensure_ascii=False)
 
 
 def Master(bot, config):
-    @bot.message_handler(content_types=['text'])
-    async def replay(message, items=None):
-        userID = message.from_user.id
-        if str(userID) == config.ClientBot.owner:
-            try:
-                # chat_id = message.chat.id
-                command = message.text
-                if command == "off":
-                    joblib.dump("off", 'life.pkl')
-                    await bot.reply_to(message, 'success！')
-                if command == "on":
-                    joblib.dump("on", 'life.pkl')
-                    await bot.reply_to(message, 'success！')
-            except Exception as e:
-                await bot.reply_to(message, "Wrong:" + str(e))
+    @bot.message_handler(commands=['start'])
+    async def send_welcome(message):
+        if message.chat.type == "private":
+            await bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
+
+    @bot.message_handler(commands=['about'])
+    async def send_about(message):
+        if message.chat.type == "private":
+            await bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
 
 
 def Group(bot, config):
@@ -65,7 +59,7 @@ def Group(bot, config):
         mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
         mrkplink.add(InlineKeyboardButton("Join our group ", url=InviteLink))  # Added Invite Link to Inline Keyboard
         await bot.send_message(msg.chat.id,
-                         f"Hey there {msg.from_user.first_name}.", reply_markup=mrkplink)
+                               f"Hey there {msg.from_user.first_name}.", reply_markup=mrkplink)
 
         # InviteLink = "123"
         # mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
