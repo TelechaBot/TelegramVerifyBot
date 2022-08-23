@@ -1,6 +1,6 @@
 # Compiled Lua sources
 luac.out
-*.json
+
 
 .idea
 Captcha.yaml
