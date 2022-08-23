@@ -69,11 +69,14 @@ class clinetBot(object):
                         bot.reply_to(message, "Wrong:" + str(e))
 
             # 加载事件
+            CaptchaCore.BotEvent.About(bot, config)
             CaptchaCore.BotEvent.Group(bot, config)
             CaptchaCore.BotEvent.Master(bot, config)
             CaptchaCore.BotEvent.New(bot, config)
             CaptchaCore.BotEvent.Left(bot, config)
             # asyncio.run(bot.polling(allowed_updates=util.update_types))
+            from BotRedis import JsonRedis
+            JsonRedis.timer()
             bot.infinity_polling()
 
 

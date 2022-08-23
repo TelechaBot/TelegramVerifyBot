@@ -83,6 +83,8 @@ def Master(bot, config):
         else:
             print(0)
 
+
+def About(bot, config):
     @bot.message_handler(commands=['about'])
     def send_about(message):
         if message.chat.type == "private":
