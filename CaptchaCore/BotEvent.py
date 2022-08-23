@@ -67,7 +67,7 @@ def saveUser(where, group, key):
     save_config()
 
 
-def Master(bot, config):
+def Start(bot, config):
     @bot.message_handler(commands=['start'])
     def send_welcome(message):
         load_config()
