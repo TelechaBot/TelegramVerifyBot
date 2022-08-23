@@ -4,16 +4,9 @@
 # @Software: PyCharm
 # @Github    ：sudoskys
 import json
-import redis
-import asyncio
-import aiohttp
 import telebot
 from telebot import types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from telebot.async_telebot import AsyncTeleBot
-
-user_list = []
-id_count = redis.StrictRedis(host='localhost', port=6379, db=5, charset='UTF-8')
 
 
 def load_config():
