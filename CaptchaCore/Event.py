@@ -12,15 +12,15 @@ import json
 from rich.console import Console
 
 
-def load_config():
-    global _config
+def load_csonfig():
+    global _csonfig
     with open("config.json", encoding="utf-8") as f:
-        _config = json.load(f)
+        _csonfig = json.load(f)
 
 
-def save_config():
+def save_csonfig():
     with open("config.json", "w", encoding="utf8") as f:
-        json.dump(_config, f, indent=4, ensure_ascii=False)
+        json.dump(_csonfig, f, indent=4, ensure_ascii=False)
 
 
 class yamler(object):

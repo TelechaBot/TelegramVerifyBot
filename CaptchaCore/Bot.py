@@ -13,15 +13,15 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.async_telebot import AsyncTeleBot
 
 
-def load_config():
-    global _config
+def load_csonfig():
+    global _csonfig
     with open("config.json", encoding="utf-8") as f:
-        _config = json.load(f)
+        _csonfig = json.load(f)
 
 
-def save_config():
+def save_csonfig():
     with open("config.json", "w", encoding="utf8") as f:
-        json.dump(_config, f, indent=4, ensure_ascii=False)
+        json.dump(_csonfig, f, indent=4, ensure_ascii=False)
 
 
 class clinetBot(object):
@@ -41,8 +41,8 @@ class clinetBot(object):
             return False
 
     def run(self, config):
-        load_config()
-        if _config.get("statu"):
+        load_csonfig()
+        if _csonfig.get("statu"):
             Tool().console.print("Bot Running", style='blue')
             bot = telebot.TeleBot(config.botToken)
             import CaptchaCore.BotEvent
@@ -50,26 +50,12 @@ class clinetBot(object):
             # from CaptchaCore.BotEvent import Event
             # from CaptchaCore.BotEvent import Group
             # 开关
-            @bot.message_handler(content_types=['text'])
-            def replay(message, items=None):
-                userID = message.from_user.id
-                if str(userID) == config.ClientBot.owner:
-                    try:
-                        # chat_id = message.chat.id
-                        command = message.text
-                        if command == "off":
-                            _config["statu"] = False
-                            save_config()
-                            bot.reply_to(message, 'success！')
-                        if command == "on":
-                            _config["statu"] = True
-                            save_config()
-                            bot.reply_to(message, 'success！')
-                    except Exception as e:
-                        bot.reply_to(message, "Wrong:" + str(e))
+            CaptchaCore.BotEvent.Starts(bot, config)
+            CaptchaCore.BotEvent.About(bot, config)
+            CaptchaCore.BotEvent.Switch(bot, config)
 
             # 加载事件
-            # CaptchaCore.BotEvent.About(bot, config)
+            CaptchaCore.BotEvent.About(bot, config)
             CaptchaCore.BotEvent.Starts(bot, config)
             CaptchaCore.BotEvent.Group(bot, config)
             CaptchaCore.BotEvent.New(bot, config)

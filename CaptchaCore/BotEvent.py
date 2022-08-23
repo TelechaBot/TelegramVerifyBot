@@ -11,24 +11,24 @@ from BotRedis import JsonRedis
 verifyRedis = JsonRedis(20)
 
 
-def load_config():
-    global _config
+def load_csonfig():
+    global _csonfig
     with open("config.json", encoding="utf-8") as f:
-        _config = json.load(f)
+        _csonfig = json.load(f)
 
 
-def save_config():
+def save_csonfig():
     with open("config.json", "w", encoding="utf8") as f:
-        json.dump(_config, f, indent=4, ensure_ascii=False)
+        json.dump(_csonfig, f, indent=4, ensure_ascii=False)
 
 
 # 支持三层读取创建操作并且不报错！
 def readUser(where, group):
     where = str(where)
     group = str(abs(group))
-    load_config()
-    if _config.get(where):
-        oss = _config[where].get(group)
+    load_csonfig()
+    if _csonfig.get(where):
+        oss = _csonfig[where].get(group)
         if oss:
             return oss
         else:
@@ -40,30 +40,50 @@ def readUser(where, group):
 def popUser(where, group, key):
     where = str(where)
     group = str(abs(group))
-    load_config()
-    if _config.get(where):
-        if _config[where].get(group):
-            if key in _config[where][str(group)]:
-                _config[where][str(group)].remove(key)
-    save_config()
+    load_csonfig()
+    if _csonfig.get(where):
+        if _csonfig[where].get(group):
+            if key in _csonfig[where][str(group)]:
+                _csonfig[where][str(group)].remove(key)
+    save_csonfig()
 
 
 def saveUser(where, group, key):
     where = str(where)
     group = str(abs(group))
-    load_config()
-    if _config.get(where):
-        if _config[where].get(group):
-            if not key in _config[where][str(group)]:
-                _config[where][str(group)].append(key)
+    load_csonfig()
+    if _csonfig.get(where):
+        if _csonfig[where].get(group):
+            if not key in _csonfig[where][str(group)]:
+                _csonfig[where][str(group)].append(key)
         else:
-            _config[where][str(group)] = []
-            _config[where][str(group)].append(key)
+            _csonfig[where][str(group)] = []
+            _csonfig[where][str(group)].append(key)
     else:
-        _config[where] = {}
-        _config[where][str(group)] = []
-        _config[where][str(group)].append(key)
-    save_config()
+        _csonfig[where] = {}
+        _csonfig[where][str(group)] = []
+        _csonfig[where][str(group)].append(key)
+    save_csonfig()
+
+def Switch(bot, config):
+    @bot.message_handler(content_types=['text'])
+    def replay(message, items=None):
+                userID = message.from_user.id
+                load_csonfig()
+                if str(userID) == config.ClientBot.owner:
+                    try:
+                        # chat_id = message.chat.id
+                        command = message.text
+                        if command == "off":
+                            _csonfig["statu"] = False
+                            save_csonfig()
+                            bot.reply_to(message, 'success！')
+                        if command == "on":
+                            _csonfig["statu"] = True
+                            save_csonfig()
+                            bot.reply_to(message, 'success！')
+                    except Exception as e:
+                        bot.reply_to(message, "Wrong:" + str(e))
 
 
 def About(bot, config):
@@ -97,13 +117,13 @@ def Group(bot, config):
         old = message.old_chat_member
         new = message.new_chat_member
         if new.status == "member":
-            load_config()
-            if message.chat.id in _config.get("whiteGroup"):
+            load_csonfig()
+            if message.chat.id in _csonfig.get("whiteGroup"):
                 pass
                 # bot.send_message(message.chat.id,
                 #                 "Hello bro! i can use high level problem to verify new chat member~~")
             else:
-                if _config.get("whiteGroupSwitch"):
+                if _csonfig.get("whiteGroupSwitch"):
                     bot.send_message(message.chat.id,
                                      "Somebody added me to THIS group,but the group not in my white list")
                     bot.leave_chat(message.chat.id)
@@ -113,7 +133,7 @@ def Left(bot, config):
     @bot.message_handler(content_types=['left_chat_member'])
     def left(msg):
         #   if msg.left_chat_member.id != bot.get_me().id:
-        load_config()
+        load_csonfig()
         try:
             bot.delete_message(msg.chat.id, msg.message_id)
 
@@ -129,7 +149,7 @@ def New(bot, config):
     @bot.message_handler(content_types=['new_chat_members'])
     def new_comer(msg):
         # if msg.left_chat_member.id != bot.get_me().id:
-        load_config()
+        load_csonfig()
         try:
             bot.delete_message(msg.chat.id, msg.message_id)
 
