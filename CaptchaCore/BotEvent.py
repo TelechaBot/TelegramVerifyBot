@@ -8,7 +8,6 @@ import telebot
 from telebot import types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from BotRedis import JsonRedis
-
 verifyRedis = JsonRedis(20)
 
 
@@ -67,10 +66,17 @@ def saveUser(where, group, key):
     save_config()
 
 
-def Start(bot, config):
+def About(bot, config):
+    @bot.message_handler(commands=['about'])
+    def send_about(message):
+        if message.chat.type == "private":
+            bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
+
+
+def Starts(bot, config):
     @bot.message_handler(commands=['start'])
-    def send_welcome(message):
-        load_config()
+    def welcome(message):
+        # bot.reply_to(message, "未检索到你的信息。你无需验证")
         if message.chat.type == "private":
             if verifyRedis.read(str(message.from_user.id)):
                 bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
@@ -82,13 +88,6 @@ def Start(bot, config):
                 bot.reply_to(message, "未检索到你的信息。你无需验证")
         else:
             print(0)
-
-
-def About(bot, config):
-    @bot.message_handler(commands=['about'])
-    def send_about(message):
-        if message.chat.type == "private":
-            bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
 
 
 def Group(bot, config):

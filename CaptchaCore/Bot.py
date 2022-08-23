@@ -46,7 +46,7 @@ class clinetBot(object):
             Tool().console.print("Bot Running", style='blue')
             bot = telebot.TeleBot(config.botToken)
             import CaptchaCore.BotEvent
-
+            from telebot import custom_filters
             # from CaptchaCore.BotEvent import Event
             # from CaptchaCore.BotEvent import Group
             # 开关
@@ -69,14 +69,15 @@ class clinetBot(object):
                         bot.reply_to(message, "Wrong:" + str(e))
 
             # 加载事件
-            CaptchaCore.BotEvent.About(bot, config)
+            # CaptchaCore.BotEvent.About(bot, config)
+            CaptchaCore.BotEvent.Starts(bot, config)
             CaptchaCore.BotEvent.Group(bot, config)
-            CaptchaCore.BotEvent.Start(bot, config)
             CaptchaCore.BotEvent.New(bot, config)
             CaptchaCore.BotEvent.Left(bot, config)
             # asyncio.run(bot.polling(allowed_updates=util.update_types))
             from BotRedis import JsonRedis
             JsonRedis.timer()
+            bot.add_custom_filter(custom_filters.ChatFilter())
             bot.infinity_polling()
 
 
