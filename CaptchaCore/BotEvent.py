@@ -9,7 +9,8 @@ from telebot import types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from BotRedis import JsonRedis
 
-verifyRedis = JsonRedis(20)
+# 构建多少秒的验证对象
+verifyRedis = JsonRedis(175)
 
 
 def load_csonfig():
@@ -105,7 +106,13 @@ def Starts(bot, config):
                 # bot.register_next_step_handler(msg, verify_step)
                 # verify_step(bot, message)
                 # 用户操作
-                verifyRedis.promote(message.from_user.id)
+                if True:
+                   verifyRedis.promote(message.from_user.id)
+                   bot.restrict_chat_member(message.chat.id, message.from_user.id, can_send_messages=True,
+                                     can_send_media_messages=True,
+                                     can_send_other_messages=True)
+                   bot.reply_to(message, "验证成功，如果没有解封请通知管理员哦")
+
             else:
                 bot.reply_to(message, "未检索到你的信息。你无需验证")
         else:
