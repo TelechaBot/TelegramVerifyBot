@@ -13,12 +13,12 @@ import asyncio, aiohttp
 
 def load_config():
     global _config
-    with open("data/list.json", encoding="utf-8") as f:
+    with open("item.json", encoding="utf-8") as f:
         _config = json.load(f)
 
 
 def save_config():
-    with open("data/list.json", "w", encoding="utf8") as f:
+    with open("item.json", "w", encoding="utf8") as f:
         json.dump(_config, f, indent=4, ensure_ascii=False)
 
 
@@ -64,7 +64,7 @@ def Group(bot, config):
         InviteLink = "https://github.com/TelechaBot"
         mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
         mrkplink.add(InlineKeyboardButton("Join our group ", url=InviteLink))  # Added Invite Link to Inline Keyboard
-        bot.send_message(msg.chat.id,
+        await bot.send_message(msg.chat.id,
                          f"Hey there {msg.from_user.first_name}.", reply_markup=mrkplink)
 
         # InviteLink = "123"

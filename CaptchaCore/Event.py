@@ -14,12 +14,12 @@ from rich.console import Console
 
 def load_config():
     global _config
-    with open("data/list.user", encoding="utf-8") as f:
+    with open("item.json", encoding="utf-8") as f:
         _config = json.load(f)
 
 
 def save_config():
-    with open("data/list.user", "w", encoding="utf8") as f:
+    with open("item.json", "w", encoding="utf8") as f:
         json.dump(_config, f, indent=4, ensure_ascii=False)
 
 
@@ -80,11 +80,11 @@ class Read(object):
 class Check(object):
     def __init__(self):
         self.file = [
-            "/data/list.json",
+            "/item.json",
             "/Captcha.yaml",
         ]
         self.dir = [
-            "/data",
+           # "/data",
         ]
         self.inits = [
             "/data/whitelist.user",
