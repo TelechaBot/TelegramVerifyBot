@@ -1,8 +1,9 @@
 {
-  "status": false,
+  "statu": true,
   "whiteGroupSwitch": false,
   "whiteGroup": [
-    1112,
-    1223
-  ]
+    1111,
+    2222
+  ],
+  "newComer": []
 }
