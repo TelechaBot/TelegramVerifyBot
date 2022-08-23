@@ -1,2 +1,2 @@
-# Derivation-Telegram
-Telegram 数学物理生物验证 bot，easy go,简易部署
+# Telegram
+Telegram 验证 bot 框架，easy go,简易部署
