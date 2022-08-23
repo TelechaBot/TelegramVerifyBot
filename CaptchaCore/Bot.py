@@ -8,6 +8,8 @@ from pathlib import Path
 import joblib, json
 from CaptchaCore.Event import Tool
 import telebot
+
+
 # from telebot import types, util
 # from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 # from telebot.async_telebot import AsyncTeleBot
@@ -40,11 +42,19 @@ class clinetBot(object):
             joblib.dump("off", 'life.pkl')
             return False
 
-    def run(self, config):
+    def botCreat(self):
+        from CaptchaCore.Event import Read, Tool
+        config = Read(str(Path.cwd()) + "/Captcha.yaml").get()
+        if config.get("version"):
+            Tool().console.print("完成初始化:" + config.version, style='blue')
+        bot = telebot.TeleBot(config.botToken)
+        return bot, config
+
+    def run(self):
         load_csonfig()
         if _csonfig.get("statu"):
             Tool().console.print("Bot Running", style='blue')
-            bot = telebot.TeleBot(config.botToken)
+            bot, config = self.botCreat()
             import CaptchaCore.BotEvent
             from telebot import custom_filters
             # from CaptchaCore.BotEvent import Event

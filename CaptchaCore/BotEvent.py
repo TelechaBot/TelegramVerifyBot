@@ -12,7 +12,6 @@ from BotRedis import JsonRedis
 # 构建多少秒的验证对象
 verifyRedis = JsonRedis(175)
 
-
 def load_csonfig():
     global _csonfig
     with open("config.json", encoding="utf-8") as f:
@@ -117,6 +116,7 @@ def Starts(bot, config):
                 bot.reply_to(message, "未检索到你的信息。你无需验证")
         else:
             print(0)
+
 
 
 def Group(bot, config):
