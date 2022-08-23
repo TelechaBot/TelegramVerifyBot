@@ -80,6 +80,7 @@ def Master(bot, config):
                 bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
                 # bot.register_next_step_handler(msg, verify_step)
                 # verify_step(bot, message)
+                # 用户操作
                 popUser("newComer", message.chat.id, message.from_user.id)
             else:
                 bot.reply_to(message, "未检索到你的信息。你无需验证")
@@ -124,6 +125,7 @@ def Left(bot, config):
             print(e)
             bot.send_message(msg.chat.id,
                              f"sorry,i am not admin")
+        # 用户操作
         popUser("newComer", msg.chat.id, msg.from_user.id)
 
 
@@ -139,7 +141,8 @@ def New(bot, config):
             print(e)
             bot.send_message(msg.chat.id,
                              f"sorry,i am not admin")
-        saveUser("newComer", msg.chat.id, msg.from_user.id)
+        # 用户操作
+        # saveUser("newComer", msg.chat.id, msg.from_user.id)
         bot.restrict_chat_member(msg.chat.id, msg.from_user.id, can_send_messages=False,
                                  can_send_media_messages=False,
                                  can_send_other_messages=False)
