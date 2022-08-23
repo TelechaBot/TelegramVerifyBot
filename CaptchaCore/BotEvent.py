@@ -7,6 +7,9 @@ import json
 import telebot
 from telebot import types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from BotRedis import JsonRedis
+
+verifyRedis = JsonRedis(20)
 
 
 def load_config():
@@ -69,12 +72,12 @@ def Master(bot, config):
     def send_welcome(message):
         load_config()
         if message.chat.type == "private":
-            if message.from_user.id in readUser("newComer", message.chat.id):
+            if verifyRedis.read(str(message.from_user.id)):
                 bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
                 # bot.register_next_step_handler(msg, verify_step)
                 # verify_step(bot, message)
                 # 用户操作
-                popUser("newComer", message.chat.id, message.from_user.id)
+                verifyRedis.promote(message.from_user.id)
             else:
                 bot.reply_to(message, "未检索到你的信息。你无需验证")
         else:
@@ -87,14 +90,13 @@ def Master(bot, config):
 
 
 def Group(bot, config):
-    # if bot is added to group, this handler will work
+    # if bot is added to group
     @bot.my_chat_member_handler()
     def my_chat_m(message: types.ChatMemberUpdated):
         old = message.old_chat_member
         new = message.new_chat_member
         if new.status == "member":
             load_config()
-            # print(_config)
             if message.chat.id in _config.get("whiteGroup"):
                 pass
                 # bot.send_message(message.chat.id,
@@ -119,7 +121,7 @@ def Left(bot, config):
             bot.send_message(msg.chat.id,
                              f"sorry,i am not admin")
         # 用户操作
-        popUser("newComer", msg.chat.id, msg.from_user.id)
+        verifyRedis.removed(msg.from_user.id, str(msg.chat.id))
 
 
 def New(bot, config):
@@ -135,6 +137,7 @@ def New(bot, config):
             bot.send_message(msg.chat.id,
                              f"sorry,i am not admin")
         # 用户操作
+        verifyRedis.add(msg.from_user.id, str(msg.chat.id))
         # saveUser("newComer", msg.chat.id, msg.from_user.id)
         bot.restrict_chat_member(msg.chat.id, msg.from_user.id, can_send_messages=False,
                                  can_send_media_messages=False,

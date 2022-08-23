@@ -49,7 +49,7 @@ class clinetBot(object):
 
             # from CaptchaCore.BotEvent import Event
             # from CaptchaCore.BotEvent import Group
-
+            # 开关
             @bot.message_handler(content_types=['text'])
             def replay(message, items=None):
                 userID = message.from_user.id
@@ -68,12 +68,11 @@ class clinetBot(object):
                     except Exception as e:
                         bot.reply_to(message, "Wrong:" + str(e))
 
-            # import asyncio
+            # 加载事件
             CaptchaCore.BotEvent.Group(bot, config)
             CaptchaCore.BotEvent.Master(bot, config)
             CaptchaCore.BotEvent.New(bot, config)
             CaptchaCore.BotEvent.Left(bot, config)
-            # import CaptchaCore.BotEvent
             # asyncio.run(bot.polling(allowed_updates=util.update_types))
             bot.infinity_polling()
 
