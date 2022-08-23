@@ -4,4 +4,3 @@ pathlib
 pyTelegramBotAPI
 rich
 joblib
-aiohttp
