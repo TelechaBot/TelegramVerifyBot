@@ -3,14 +3,14 @@
 # @FileName: Bot.py
 # @Software: PyCharm
 # @Github    ：sudoskys
-import aiohttp
+# import aiohttp
 from pathlib import Path
 import joblib, json
 from CaptchaCore.Event import Tool
 import telebot
-from telebot import types, util
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from telebot.async_telebot import AsyncTeleBot
+# from telebot import types, util
+# from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+# from telebot.async_telebot import AsyncTeleBot
 
 
 def load_csonfig():

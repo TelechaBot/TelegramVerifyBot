@@ -8,6 +8,7 @@ import telebot
 from telebot import types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from BotRedis import JsonRedis
+
 verifyRedis = JsonRedis(20)
 
 
@@ -65,25 +66,26 @@ def saveUser(where, group, key):
         _csonfig[where][str(group)].append(key)
     save_csonfig()
 
+
 def Switch(bot, config):
     @bot.message_handler(content_types=['text'])
     def replay(message, items=None):
-                userID = message.from_user.id
-                load_csonfig()
-                if str(userID) == config.ClientBot.owner:
-                    try:
-                        # chat_id = message.chat.id
-                        command = message.text
-                        if command == "off":
-                            _csonfig["statu"] = False
-                            save_csonfig()
-                            bot.reply_to(message, 'success！')
-                        if command == "on":
-                            _csonfig["statu"] = True
-                            save_csonfig()
-                            bot.reply_to(message, 'success！')
-                    except Exception as e:
-                        bot.reply_to(message, "Wrong:" + str(e))
+        userID = message.from_user.id
+        load_csonfig()
+        if str(userID) == config.ClientBot.owner:
+            try:
+                # chat_id = message.chat.id
+                command = message.text
+                if command == "off":
+                    _csonfig["statu"] = False
+                    save_csonfig()
+                    bot.reply_to(message, 'success！')
+                if command == "on":
+                    _csonfig["statu"] = True
+                    save_csonfig()
+                    bot.reply_to(message, 'success！')
+            except Exception as e:
+                bot.reply_to(message, "Wrong:" + str(e))
 
 
 def About(bot, config):

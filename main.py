@@ -3,11 +3,9 @@
 # @FileName: main.py
 # @Software: PyCharm
 # @Github    ：sudoskys
-import aiohttp
-import pathlib
+
 from pathlib import Path
 from CaptchaCore.Bot import sendBot, clinetBot
-from configparser import ConfigParser
 from CaptchaCore.Event import Check, Read, Tool
 
 # 初始化文件系统
@@ -20,5 +18,3 @@ if config.get("version"):
 
 # pushService = sendBot(config.botToken)
 clinetBot().run(config)
-
-
