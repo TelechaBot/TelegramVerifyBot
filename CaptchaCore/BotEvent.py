@@ -13,12 +13,12 @@ import asyncio, aiohttp
 
 def load_config():
     global _config
-    with open("item.json", encoding="utf-8") as f:
+    with open("Group.json", encoding="utf-8") as f:
         _config = json.load(f)
 
 
 def save_config():
-    with open("item.json", "w", encoding="utf8") as f:
+    with open("Group.json", "w", encoding="utf8") as f:
         json.dump(_config, f, indent=4, ensure_ascii=False)
 
 
