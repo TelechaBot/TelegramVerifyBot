@@ -5,7 +5,7 @@
 # @Github    ：sudoskys
 import telebot
 import json, joblib
-from telebot import types, util
+from telebot import ExceptionHandler, types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.async_telebot import AsyncTeleBot
 import asyncio, aiohttp
@@ -43,10 +43,11 @@ def Master(bot, config):
     @bot.message_handler(commands=['start'])
     async def send_welcome(message):
         load_config()
-        user = _config.get("newCommer")
+        # print(0)
+        # print(message.msg.from_user.id)
         if message.chat.type == "private":
-            if message.msg.from_user.id in user:
-                msg = bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
+            if message.msg.from_user.id in _config.get("newCommer"):
+                await bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
                 # bot.register_next_step_handler(msg, verify_step)
                 verify_step(bot, message)
                 # await bot.reply_to(message, )
@@ -78,11 +79,31 @@ def Group(bot, config):
                                            "Somebody added me to THIS group,but the group not in my white list")
                     await bot.leave_chat(message.chat.id)
 
-    @bot.message_handler(content_types=['new_chat_members'])
-    async def new_comer(msg):
+    @bot.message_handler(content_types=['left_chat_member'])
+    async def left(msg):
+        #   if msg.left_chat_member.id != bot.get_me().id:
         load_config()
-        await bot.delete_message(msg.chat.id, msg.message_id)
-        _config["newCommer"].append(msg.from_user.id)
+        try:
+            await bot.delete_message(msg.chat.id, msg.message_id)
+        except Exception as e:
+            await bot.send_message(msg.chat.id,
+                                   f"sorry,i am not admin")
+        _config["newCommer"].pop(msg.from_user.id)
+        save_config()
+
+    @bot.message_handler(content_types=['new_chat_member'])
+    async def new_comer(msg):
+        # if msg.left_chat_member.id != bot.get_me().id:
+        load_config()
+        try:
+            await bot.delete_message(msg.chat.id, msg.message_id)
+        except Exception as e:
+            await bot.send_message(msg.chat.id,
+                                   f"sorry,i am not admin")
+        # aas(2)
+        _config["newCommer"] = +[msg.from_user.id]
+        _config["newCommer"] = list(set(_config["newCommer"]))
+        save_config()
         await bot.restrict_chat_member(msg.chat.id, msg.from_user.id, can_send_messages=False,
                                        can_send_media_messages=False,
                                        can_send_other_messages=False)
@@ -93,9 +114,9 @@ def Group(bot, config):
         await bot.send_message(msg.chat.id,
                                f"Hey there {msg.from_user.first_name}.", reply_markup=mrkplink)
 
-        # InviteLink = "123"
-        # mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
-        # mrkplink.add(InlineKeyboardButton("click here to verify yourself🚀", url=InviteLink))
-        # await bot.send_message(message.chat.id, "Hello {name}!, Pleas  Click the link below to verify".format(
-        #    name=new.user.first_name),
-        #                       reply_markup=mrkplink)  # Welcome message
+    # InviteLink = "123"
+    # mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
+    # mrkplink.add(InlineKeyboardButton("click here to verify yourself🚀", url=InviteLink))
+    # await bot.send_message(message.chat.id, "Hello {name}!, Pleas  Click the link below to verify".format(
+    #    name=new.user.first_name),
+    #                       reply_markup=mrkplink)  # Welcome message

@@ -45,8 +45,9 @@ class clinetBot(object):
         if _config.get("statu"):
             Tool().console.print("Bot Running", style='blue')
             bot = AsyncTeleBot(config.botToken)
-            from CaptchaCore.BotEvent import Master
-            from CaptchaCore.BotEvent import Group
+
+            # from CaptchaCore.BotEvent import Event
+            # from CaptchaCore.BotEvent import Group
 
             @bot.message_handler(content_types=['text'])
             async def replay(message, items=None):
@@ -56,19 +57,37 @@ class clinetBot(object):
                         # chat_id = message.chat.id
                         command = message.text
                         if command == "off":
-                            _config["status"] = False
+                            _config["statu"] = False
                             save_config()
                             await bot.reply_to(message, 'success！')
                         if command == "on":
-                            _config["status"] = True
+                            _config["statu"] = True
                             save_config()
                             await bot.reply_to(message, 'success！')
                     except Exception as e:
                         await bot.reply_to(message, "Wrong:" + str(e))
 
-            Master(bot, config)
-            Group(bot, config)
+            @bot.message_handler(commands=['start'])
+            async def send_welcome(message):
+                load_config()
+                # print(0)
+                # print(message.msg.from_user.id)
+                if message.chat.type == "private":
+                    await bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
+                    if message.msg.from_user.id in _config.get("newCommer"):
+                        await bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
+                        # bot.register_next_step_handler(msg, verify_step)
+                        # verify_step(bot, message)
+                        # await bot.reply_to(message, )
+                    else:
+                        await bot.reply_to(message, "你无需验证")
 
+            @bot.message_handler(commands=['about'])
+            async def send_about(message):
+                if message.chat.type == "private":
+                    await bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
+
+            # import CaptchaCore.BotEvent
             import asyncio
             asyncio.run(bot.polling(allowed_updates=util.update_types))
         # bot.infinity_polling()
