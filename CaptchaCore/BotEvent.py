@@ -12,6 +12,7 @@ from BotRedis import JsonRedis
 # 构建多少秒的验证对象
 verifyRedis = JsonRedis(175)
 
+
 def load_csonfig():
     global _csonfig
     with open("config.json", encoding="utf-8") as f:
@@ -69,7 +70,7 @@ def saveUser(where, group, key):
 
 def Switch(bot, config):
     @bot.message_handler(content_types=['text'])
-    def replay(message, items=None):
+    def masters(message, items=None):
         userID = message.from_user.id
         load_csonfig()
         if str(userID) == config.ClientBot.owner:
@@ -100,23 +101,36 @@ def Starts(bot, config):
     def welcome(message):
         # bot.reply_to(message, "未检索到你的信息。你无需验证")
         if message.chat.type == "private":
-            if verifyRedis.read(str(message.from_user.id)):
-                bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
-                # bot.register_next_step_handler(msg, verify_step)
+            group = verifyRedis.read(str(message.from_user.id))
+            if group:
+                bot.reply_to(message, f"开始验证群组{group}，你有175秒的时间计算这道题目")
+
+                def verify_step(message):
+                    try:
+                        chat_id = message.chat.id
+                        answer = message.text
+                        # 用户操作
+                        # 条件，你需要在这里写调用验证的模块和相关逻辑，调用 veridyRedis 来决定用户去留！
+                        if True:
+                            verifyRedis.promote(message.from_user.id)
+                            bot.restrict_chat_member(message.chat.id, message.from_user.id, can_send_messages=True,
+                                                     can_send_media_messages=True,
+                                                     can_send_other_messages=True)
+                            bot.reply_to(message, "验证成功，如果没有解封请通知管理员")
+                        # user = User(name)
+                        # user_dict[chat_id] = user
+                        # msg = bot.reply_to(message, 'How old are you?')
+                        # bot.register_next_step_handler(msg, process_age_step)
+                    except Exception as e:
+                        bot.reply_to(message, 'oooops')
+
+                bot.register_next_step_handler(message, verify_step)
                 # verify_step(bot, message)
-                # 用户操作
-                if True:
-                   verifyRedis.promote(message.from_user.id)
-                   bot.restrict_chat_member(message.chat.id, message.from_user.id, can_send_messages=True,
-                                     can_send_media_messages=True,
-                                     can_send_other_messages=True)
-                   bot.reply_to(message, "验证成功，如果没有解封请通知管理员哦")
 
             else:
                 bot.reply_to(message, "未检索到你的信息。你无需验证")
         else:
             print(0)
-
 
 
 def Group(bot, config):
