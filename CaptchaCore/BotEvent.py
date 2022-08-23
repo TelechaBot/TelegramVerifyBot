@@ -3,12 +3,17 @@
 # @FileName: BotEvent.py
 # @Software: PyCharm
 # @Github    ：sudoskys
+import json
+import redis
+import asyncio
+import aiohttp
 import telebot
-import json, joblib
-from telebot import ExceptionHandler, types, util
+from telebot import types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.async_telebot import AsyncTeleBot
-import asyncio, aiohttp
+
+user_list = []
+id_count = redis.StrictRedis(host='localhost', port=6379, db=5, charset='UTF-8')
 
 
 def load_config():
@@ -22,48 +27,75 @@ def save_config():
         json.dump(_config, f, indent=4, ensure_ascii=False)
 
 
-def Verfiy(id, text):
-    _config["newCommer"].pop(id)
+# 支持三层读取创建操作并且不报错！
+def readUser(where, group):
+    where = str(where)
+    group = str(abs(group))
+    load_config()
+    if _config.get(where):
+        oss = _config[where].get(group)
+        if oss:
+            return oss
+        else:
+            return []
+    else:
+        return []
+
+
+def popUser(where, group, key):
+    where = str(where)
+    group = str(abs(group))
+    load_config()
+    if _config.get(where):
+        if _config[where].get(group):
+            if key in _config[where][str(group)]:
+                _config[where][str(group)].remove(key)
     save_config()
 
 
-def verify_step(bot):
-    @bot.message_handler(func=lambda message: True)
-    async def echo_message(message):
-        bot.reply_to(message, message.text)
-        try:
-            chat_id = message.chat.id
-            answer = message.text
-            Verfiy(message.msg.from_user.id, answer)
-        except Exception as e:
-            await bot.reply_to(message, 'oooops')
+def saveUser(where, group, key):
+    where = str(where)
+    group = str(abs(group))
+    load_config()
+    if _config.get(where):
+        if _config[where].get(group):
+            if not key in _config[where][str(group)]:
+                _config[where][str(group)].append(key)
+        else:
+            _config[where][str(group)] = []
+            _config[where][str(group)].append(key)
+    else:
+        _config[where] = {}
+        _config[where][str(group)] = []
+        _config[where][str(group)].append(key)
+    save_config()
 
 
 def Master(bot, config):
     @bot.message_handler(commands=['start'])
-    async def send_welcome(message):
+    def send_welcome(message):
         load_config()
-        # print(0)
-        # print(message.msg.from_user.id)
         if message.chat.type == "private":
-            if message.msg.from_user.id in _config.get("newCommer"):
-                await bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
+            if message.from_user.id in readUser("newComer", message.chat.id):
+                bot.reply_to(message, "开始验证，你有175秒的时间计算这道题目")
                 # bot.register_next_step_handler(msg, verify_step)
-                verify_step(bot, message)
-                # await bot.reply_to(message, )
+                # verify_step(bot, message)
+                popUser("newComer", message.chat.id, message.from_user.id)
             else:
-                await bot.reply_to(message, "你无需验证")
+                bot.reply_to(message, "未检索到你的信息。你无需验证")
+        else:
+            print(0)
 
     @bot.message_handler(commands=['about'])
-    async def send_about(message):
+    def send_about(message):
         if message.chat.type == "private":
-            await bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
+            bot.reply_to(message, "学习永不停息，进步永不止步，Project:https://github.com/sudoskys/")
 
 
 def Group(bot, config):
     # if bot is added to group, this handler will work
     @bot.my_chat_member_handler()
-    async def my_chat_m(message: types.ChatMemberUpdated):
+    def my_chat_m(message: types.ChatMemberUpdated):
         old = message.old_chat_member
         new = message.new_chat_member
         if new.status == "member":
@@ -75,44 +107,48 @@ def Group(bot, config):
                 #                 "Hello bro! i can use high level problem to verify new chat member~~")
             else:
                 if _config.get("whiteGroupSwitch"):
-                    await bot.send_message(message.chat.id,
-                                           "Somebody added me to THIS group,but the group not in my white list")
-                    await bot.leave_chat(message.chat.id)
+                    bot.send_message(message.chat.id,
+                                     "Somebody added me to THIS group,but the group not in my white list")
+                    bot.leave_chat(message.chat.id)
 
+
+def Left(bot, config):
     @bot.message_handler(content_types=['left_chat_member'])
-    async def left(msg):
+    def left(msg):
         #   if msg.left_chat_member.id != bot.get_me().id:
         load_config()
         try:
-            await bot.delete_message(msg.chat.id, msg.message_id)
-        except Exception as e:
-            await bot.send_message(msg.chat.id,
-                                   f"sorry,i am not admin")
-        _config["newCommer"].pop(msg.from_user.id)
-        save_config()
+            bot.delete_message(msg.chat.id, msg.message_id)
 
-    @bot.message_handler(content_types=['new_chat_member'])
-    async def new_comer(msg):
+        except Exception as e:
+            print(e)
+            bot.send_message(msg.chat.id,
+                             f"sorry,i am not admin")
+        popUser("newComer", msg.chat.id, msg.from_user.id)
+
+
+def New(bot, config):
+    @bot.message_handler(content_types=['new_chat_members'])
+    def new_comer(msg):
         # if msg.left_chat_member.id != bot.get_me().id:
         load_config()
         try:
-            await bot.delete_message(msg.chat.id, msg.message_id)
+            bot.delete_message(msg.chat.id, msg.message_id)
+
         except Exception as e:
-            await bot.send_message(msg.chat.id,
-                                   f"sorry,i am not admin")
-        # aas(2)
-        _config["newCommer"] = +[msg.from_user.id]
-        _config["newCommer"] = list(set(_config["newCommer"]))
-        save_config()
-        await bot.restrict_chat_member(msg.chat.id, msg.from_user.id, can_send_messages=False,
-                                       can_send_media_messages=False,
-                                       can_send_other_messages=False)
+            print(e)
+            bot.send_message(msg.chat.id,
+                             f"sorry,i am not admin")
+        saveUser("newComer", msg.chat.id, msg.from_user.id)
+        bot.restrict_chat_member(msg.chat.id, msg.from_user.id, can_send_messages=False,
+                                 can_send_media_messages=False,
+                                 can_send_other_messages=False)
         InviteLink = "https://github.com/TelechaBot"
         mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
         mrkplink.add(
             InlineKeyboardButton("请与我展开私聊测试，来证明您是真人。 ", url=InviteLink))  # Added Invite Link to Inline Keyboard
-        await bot.send_message(msg.chat.id,
-                               f"Hey there {msg.from_user.first_name}.", reply_markup=mrkplink)
+        bot.send_message(msg.chat.id,
+                         f"Hey there {msg.from_user.first_name}.", reply_markup=mrkplink)
 
     # InviteLink = "123"
     # mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
