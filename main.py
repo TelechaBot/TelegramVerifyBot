@@ -9,8 +9,10 @@ from pathlib import Path
 from CaptchaCore.Bot import sendBot, clinetBot
 from configparser import ConfigParser
 from CaptchaCore.Event import Check, Read, Tool
+
 # 初始化文件系统
 Check().run()
+
 # 初始化配置文件
 config = Read(str(Path.cwd()) + "/Captcha.yaml").get()
 if config.get("version"):

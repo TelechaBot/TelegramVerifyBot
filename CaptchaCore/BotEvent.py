@@ -59,17 +59,17 @@ def Group(bot, config):
                                            "Somebody added me to THIS group,but the group not in my white list")
                     await bot.leave_chat(message.chat.id)
 
+    @bot.message_handler(content_types=['new_chat_members'])
+    async def delall(msg):
+        InviteLink = "https://github.com/TelechaBot"
+        mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
+        mrkplink.add(InlineKeyboardButton("Join our group ", url=InviteLink))  # Added Invite Link to Inline Keyboard
+        bot.send_message(msg.chat.id,
+                         f"Hey there {msg.from_user.first_name}.", reply_markup=mrkplink)
 
-    @bot.chat_member_handler()
-    async def chat_update(message: types.ChatMemberUpdated):
-        news = message.new_chat_member
-        if news.status == "member":
-            await bot.send_message(message.chat.id,
-                                   "Hello {name}!".format(name=news.user.first_name))  # Welcome message
-
-            # InviteLink = "123"
-            # mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
-            # mrkplink.add(InlineKeyboardButton("click here to verify yourself🚀", url=InviteLink))
-            # await bot.send_message(message.chat.id, "Hello {name}!, Pleas  Click the link below to verify".format(
-            #    name=new.user.first_name),
-            #                       reply_markup=mrkplink)  # Welcome message
+        # InviteLink = "123"
+        # mrkplink = InlineKeyboardMarkup()  # Created Inline Keyboard Markup
+        # mrkplink.add(InlineKeyboardButton("click here to verify yourself🚀", url=InviteLink))
+        # await bot.send_message(message.chat.id, "Hello {name}!, Pleas  Click the link below to verify".format(
+        #    name=new.user.first_name),
+        #                       reply_markup=mrkplink)  # Welcome message
