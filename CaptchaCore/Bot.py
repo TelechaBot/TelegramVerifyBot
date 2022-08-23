@@ -42,11 +42,12 @@ class clinetBot(object):
 
     def run(self, config):
         load_config()
-        if _config.statu:
+        if _config.get("statu"):
             Tool().console.print("Bot Running", style='blue')
             bot = AsyncTeleBot(config.botToken)
             from CaptchaCore.BotEvent import Master
             from CaptchaCore.BotEvent import Group
+
             @bot.message_handler(content_types=['text'])
             async def replay(message, items=None):
                 userID = message.from_user.id
