@@ -2,12 +2,16 @@ import json
 import pathlib
 import time
 
+
 # 必须需要一个创建机器人对象的类才能使用KickMember功能！
 
 class JsonRedis(object):
-    def __init__(self, interval,config):
-        self.interval = interval
+    def __init__(self, interval):
         JsonRedis.load_tasks()
+        if not _tasks.get("interval"):
+            if interval:
+                _tasks["interval"] = interval
+                JsonRedis.save_tasks()
         if not _tasks.get("Time_id"):
             _tasks["Time_id"] = {}
             JsonRedis.save_tasks()
@@ -19,9 +23,6 @@ class JsonRedis(object):
             JsonRedis.save_tasks()
         if not _tasks.get("super"):
             _tasks["super"] = {}
-            JsonRedis.save_tasks()
-        if not _tasks.get("interval"):
-            _tasks["interval"] = self.interval
             JsonRedis.save_tasks()
 
     @staticmethod
@@ -66,7 +67,7 @@ class JsonRedis(object):
         where = str(where)
         JsonRedis.load_tasks()
         if _tasks.get(where):
-            if _tasks[where][str(group)]:
+            if _tasks[where].get(str(group)):
                 if not (key in _tasks[where][str(group)]):
                     _tasks[where][str(group)].append(key)
             else:
@@ -79,47 +80,70 @@ class JsonRedis(object):
         JsonRedis.save_tasks()
 
     def add(self, userId, groupId):
+        """
+        注册队列
+        :param userId:
+        :param groupId:
+        :return:
+        """
         JsonRedis.load_tasks()
-        _tasks["Time_id"][str(int(time.time()))] = userId
+        _tasks["Time_id"][str(int(time.time()))] = str(userId)
         _tasks["Time_group"][str(int(time.time()))] = str(groupId)
         JsonRedis.save_tasks()
         JsonRedis.saveUser("User_group", userId, str(int(time.time())))
 
     def read(self, userId):
+        """
+        读取用户的注册键
+        :param userId:
+        :return:
+        """
         User = _tasks["User_group"].get(str(userId))
         if User:
             if len(User) != 0:
                 key = _tasks["User_group"].get(str(userId))[0]
                 # user = _tasks["Time_id"].get(key)
                 group = _tasks["Time_group"].get(key)
-                return group
+                return group, key
             else:
-                return False
+                return False, False
         else:
-            return False
+            return False, False
 
     def removed(self, userId, groupId):
+        """
+        人员被移除或者退群，弹出对目标群组的验证任务
+        :param userId:
+        :param groupId:
+        :return:
+        """
         User = _tasks["User_group"].get(str(userId))
         if User:
             if len(User) != 0:
                 for key, i in _tasks["Time_group"].items():
                     if i == str(groupId):
-                        JsonRedis.checker([key])
+                        JsonRedis.checker(tar=[key])
 
     def promote(self, userId, groupId=None):
+        """
+        提升用户并取消过期队列,解禁需要另外语句
+        :param userId:
+        :param groupId:
+        :return:
+        """
         User = _tasks["User_group"].get(str(userId))
         if User:
             if len(User) != 0:
                 if groupId:
                     for key, i in _tasks["Time_group"].items():
                         if i == str(groupId):
-                            JsonRedis.checker([key])
-                            JsonRedis.saveUser("super", userId, str(groupId))
+                            JsonRedis.checker(tar=[key])
+                            JsonRedis.saveUser("super", str(userId), str(groupId))
                 else:
                     key = _tasks["User_group"].get(str(userId))[0]
                     groupId = _tasks["Time_group"].get(key)
-                    JsonRedis.checker([key])
-                    JsonRedis.saveUser("super", userId, str(groupId))
+                    JsonRedis.checker(tar=[key])
+                    JsonRedis.saveUser("super", str(userId), str(groupId))
 
     @staticmethod
     def run_timer():
@@ -133,36 +157,51 @@ class JsonRedis(object):
         t.start()
 
     @staticmethod
-    def checker(tar=None):
+    def checker(tar=None, fail_user=None):
+        """
+        检查器，调用就会检查一次，弹出传入的键值，
+        :param tar: 传入这里，则不踢出而弹出
+        :param fail_user: 传入这里，则踢出且弹出
+        :return:
+        """
         if tar is None:
             tar = []
+        if fail_user is None:
+            fail_user = []
             # 豁免名单
-        JsonRedis.load_tasks()
         ban = []
         ban = ban + tar
+        ban = ban + fail_user
+        JsonRedis.load_tasks()
         for key, item in _tasks["Time_id"].items():
-            if int(time.time()) - int(key) > int(_tasks["interval"]):
+            if abs(int(time.time()) - int(key)) > int(_tasks["interval"]):
                 ban.append(key)
             else:
                 pass
                 # 用户未过期
                 # print("No")
         for key in ban:
-            user = _tasks["Time_id"].pop(key)
-            group = _tasks["Time_group"].pop(key)
-            _tasks["User_group"][str(user)].remove(key)
+            user = _tasks["Time_id"].pop(str(key))
+            group = _tasks["Time_group"].pop(str(key))
+            try:
+                _tasks["User_group"].get(str(user)).remove(str(key))
+            except Exception as e:
+                print(e)
             if not (key in tar):
-                # 过期验证的操作
-                from CaptchaCore.Bot import clinetBot
-                bot, config =clinetBot().botCreat()
-                bot.kick_chat_member(group,user)
-                # print("ban " + str(user) + str(group))
-
-
+                user_something = _tasks["super"].get(str(user))
+                if user_something is None:
+                    user_something = []
+                if not (group in user_something):
+                    # 过期验证的操作
+                    from CaptchaCore.Bot import clinetBot
+                    bot, config = clinetBot().botCreat()
+                    try:
+                        bot.kick_chat_member(group, user)
+                    except Exception as e:
+                        print(e)
+                    # print("ban " + str(user) + str(group))
         JsonRedis.save_tasks()
-
-    def interval(self):
-        return self.interval
+        # 同步配置队列
 
 #
 # JsonRedis(6).add(1222, str(-52333))
