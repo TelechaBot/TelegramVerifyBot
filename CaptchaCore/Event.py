@@ -23,6 +23,102 @@ def save_csonfig():
         json.dump(_csonfig, f, indent=4, ensure_ascii=False)
 
 
+class botWorker(object):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def delmsg(bot, chat, message):
+        bot.delete_message(chat, message)
+
+    @staticmethod
+    def un_restrict(message, bot, groups, un_restrict_all=False):
+        if un_restrict_all:
+            bot.restrict_chat_member(groups, message.from_user.id, can_send_messages=True,
+                                     can_send_media_messages=True,
+                                     can_send_other_messages=True,
+                                     can_pin_messages=True,
+                                     can_change_info=True,
+                                     can_send_polls=True,
+                                     can_invite_users=True,
+                                     can_add_web_page_previews=True,
+                                     )
+        else:
+            bot.restrict_chat_member(groups, message.from_user.id, can_send_messages=True,
+                                     can_send_media_messages=True,
+                                     can_send_other_messages=True,
+                                     can_send_polls=True,
+                                     )
+
+    @staticmethod
+    def send_ban(message, bot, groups):
+        msgss = bot.send_message(groups,
+                                 f"刚刚{message.from_user.first_name}没有通过验证，已经被扭送璃月警察局...加入了黑名单！"
+                                 f"\n在其不在验证或冷却时禁言来永久封禁\n用户6分钟后从黑名单中保释")
+        return msgss
+
+    @staticmethod
+    def unbanUser(bot, chat, user):
+        msgss = bot.unban_chat_member(chat, user_id=user, only_if_banned=True)
+        print("执行了移除黑名单:" + str(user))
+        return msgss
+
+    @staticmethod
+    def send_ok(message, bot, groups, well_unban):
+        if well_unban:
+            info = "完全解封"
+        else:
+            info = "因为被踢出，只保留基本权限"
+        msgss = bot.send_message(groups,
+                                 f"刚刚{message.from_user.first_name}通过了验证！{info}")
+        return msgss
+
+    @staticmethod
+    def get_difficulty(cls):
+        load_csonfig()
+        if _csonfig.get("difficulty_limit") is None:
+            _csonfig["difficulty_limit"] = {}
+            save_csonfig()
+        if _csonfig.get("difficulty_min") is None:
+            _csonfig["difficulty_min"] = {}
+            save_csonfig()
+        limit = _csonfig.get("difficulty_limit").get(str(cls))
+        mina = _csonfig.get("difficulty_min").get(str(cls))
+        if limit is None:
+            limit = 7
+        else:
+            limit = "".join(list(filter(str.isdigit, limit)))
+        if mina is None:
+            mina = 1
+        else:
+            mina = "".join(list(filter(str.isdigit, mina)))
+        return mina, limit
+
+    @staticmethod
+    def set_difficulty(group_id, difficulty_limit=None, difficulty_min=None):
+        load_csonfig()
+        if _csonfig.get("difficulty_limit") is None:
+            _csonfig["difficulty_limit"] = {}
+            save_csonfig()
+        if _csonfig.get("difficulty_min") is None:
+            _csonfig["difficulty_min"] = {}
+            save_csonfig()
+        set_difficulty_limit = False
+        set_difficulty_min = False
+        if not (difficulty_limit is None):
+            _csonfig["difficulty_limit"][str(group_id)] = difficulty_limit
+            set_difficulty_limit = True
+        if not (difficulty_min is None):
+            _csonfig["difficulty_min"][str(group_id)] = difficulty_min
+            set_difficulty_min = True
+        save_csonfig()
+        return set_difficulty_min, set_difficulty_limit
+
+    @staticmethod
+    def extract_arg(arg):
+        return arg.split()[1:]
+
+
 class yamler(object):
     # sudoskys@github
     def __init__(self):
@@ -84,7 +180,7 @@ class Check(object):
             "/Captcha.yaml",
         ]
         self.dir = [
-           # "/data",
+            # "/data",
         ]
         self.inits = [
             "/data/whitelist.user",

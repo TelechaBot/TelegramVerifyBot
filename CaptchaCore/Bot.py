@@ -5,15 +5,11 @@
 # @Github    ：sudoskys
 # import aiohttp
 from pathlib import Path
-import joblib, json
+import joblib
+import json
 from CaptchaCore.Event import Tool
 import telebot
-
-
-# from telebot import types, util
-# from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-# from telebot.async_telebot import AsyncTeleBot
-
+from telebot import custom_filters
 
 def load_csonfig():
     global _csonfig
@@ -30,18 +26,6 @@ class clinetBot(object):
     def __init__(self):
         pass
 
-    @staticmethod
-    def life():
-        try:
-            if joblib.load('life.pkl') == "on":
-                return True
-            else:
-                return False
-        except Exception as e:
-            print("Wrong:life.pkl do not exist" + str(e))
-            joblib.dump("off", 'life.pkl')
-            return False
-
     def botCreat(self):
         from CaptchaCore.Event import Read, Tool
         config = Read(str(Path.cwd()) + "/Captcha.yaml").get()
@@ -55,26 +39,50 @@ class clinetBot(object):
         if _csonfig.get("statu"):
             Tool().console.print("Bot Running", style='blue')
             bot, config = self.botCreat()
-            import CaptchaCore.BotEvent
             from telebot import custom_filters
-            # from CaptchaCore.BotEvent import Event
-            # from CaptchaCore.BotEvent import Group
-            # 开关
-            CaptchaCore.BotEvent.Starts(bot, config)
-            CaptchaCore.BotEvent.About(bot, config)
-            CaptchaCore.BotEvent.Switch(bot, config)
+            from telebot import types, util
+            import CaptchaCore.BotEvent
 
-            # 加载事件
-            CaptchaCore.BotEvent.About(bot, config)
-            CaptchaCore.BotEvent.Starts(bot, config)
-            CaptchaCore.BotEvent.Group(bot, config)
-            CaptchaCore.BotEvent.New(bot, config)
-            CaptchaCore.BotEvent.Left(bot, config)
-            # asyncio.run(bot.polling(allowed_updates=util.update_types))
+            @bot.chat_member_handler()
+            def chat_m(message: types.ChatMemberUpdated):
+                CaptchaCore.BotEvent.member_update(bot, message, config)
+
+            @bot.message_handler(commands=["start", 'about'])
+            def handle_command(message):
+                if "/start" in message.text:
+                    CaptchaCore.BotEvent.Start(bot, message, config)
+                elif "/about" in message.text:
+                    CaptchaCore.BotEvent.About(bot, message, config)
+
+            @bot.message_handler(content_types=['text'], chat_types=['private'])
+            def handle_private_msg(message):
+                CaptchaCore.BotEvent.Switch(bot, message, config)
+
+            @bot.message_handler(is_chat_admin=False, chat_types=['supergroup', 'group'])
+            def group_msg_no_admin(message):
+                CaptchaCore.BotEvent.Banme(bot, message, config)
+
+            @bot.message_handler(chat_types=['supergroup', 'group'], is_chat_admin=True)
+            def group_msg_no_admin(message):
+                CaptchaCore.BotEvent.Admin(bot, message, config)
+
+            @bot.my_chat_member_handler()
+            def bot_self(message: types.ChatMemberUpdated):
+                CaptchaCore.BotEvent.botSelf(bot, message, config)
+
+            # @bot.message_handler(content_types=['left_chat_member'])
+            # def left_chat(message):
+            #     CaptchaCore.BotEvent.Left(bot, message, config)
+
+            @bot.message_handler(content_types=util.content_type_service)
+            def service_msg(message: types.Message):
+                CaptchaCore.BotEvent.msg_del(bot, message, config)
+
             from BotRedis import JsonRedis
             JsonRedis.timer()
+            bot.add_custom_filter(custom_filters.IsAdminFilter(bot))
             bot.add_custom_filter(custom_filters.ChatFilter())
-            bot.infinity_polling()
+            bot.infinity_polling(allowed_updates=util.update_types)
 
 
 class sendBot(object):
