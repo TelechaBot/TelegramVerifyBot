@@ -7,7 +7,7 @@ import json
 import pathlib
 import random
 import time
-from telebot import types, util
+# from telebot import types, util
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from BotRedis import JsonRedis
 from threading import Timer
@@ -118,7 +118,7 @@ def Banme(bot, message, config):
                 InlineKeyboardButton("点击这里进行生物验证", url=InviteLink))  # Added Invite Link to Inline Keyboard
             mins = (random.randint(1, 10) * 1)
             msgs = bot.reply_to(message,
-                                f" {message.from_user.username} 获得了 {mins} 分钟封锁，俄罗斯转盘模式已经开启, "
+                                f" {message.from_user.id} 获得了 {mins} 分钟封锁，俄罗斯转盘模式已经开启, "
                                 f"答题可以解锁，不答题会被踢出群组，答错会被踢出群组，等待12分钟.\n管理员手动解封请使用`+unban {message.from_user.id}`",
                                 reply_markup=bot_link,
                                 parse_mode='Markdown')
@@ -243,7 +243,7 @@ def member_update(bot, msg, config):
     def verify_user(bot, config, statu):
         # 用户操作
         resign_key = verifyRedis.resign_user(str(new.user.id), str(msg.chat.id))
-        user_ke = str(resign_key) + " " + str(statu)
+        user_ke = str(resign_key) + " " + str(statu) + " " + str(new.user.id)
         user_key = binascii.b2a_hex(user_ke.encode('ascii')).decode('ascii')
         InviteLink = config.link + "?start=" + str(user_key)
         # print(InviteLink)
@@ -251,7 +251,7 @@ def member_update(bot, msg, config):
         bot_link.add(
             InlineKeyboardButton("点这里进行生物验证", url=InviteLink))  # Added Invite Link to Inline Keyboard
         msgs = bot.send_message(msg.chat.id,
-                                f"{msg.from_user.username}正在申请加入 `{msg.chat.title}`\nPassID:`{user_key}`"
+                                f"{msg.from_user.id}正在申请加入 `{msg.chat.title}`\nPassID:`{user_key}`"
                                 f"\n群组ID:`{msg.chat.id}`"
                                 f"\n赫免命令`+unban {new.user.id}`",
                                 reply_markup=bot_link,
@@ -265,7 +265,7 @@ def member_update(bot, msg, config):
         except Exception as e:
             print(e)
             no_power = bot.send_message(msg.chat.id,
-                                        f"对不起，没有权限执行对新用户 `{new.user.id}` 的限制\nPassID:`{user_key}`\nGroupID:`{msg.chat.id}`",
+                                        f"对不起，没有权限执行对新用户 `{new.user.id}` 的限制\nPassID: `{user_key}` \nGroupID:`{msg.chat.id}`",
                                         parse_mode='Markdown')
             t = Timer(15, botWorker.delmsg, args=[bot, no_power.chat.id, no_power.message_id])
             t.start()
@@ -304,21 +304,29 @@ def member_update(bot, msg, config):
 def Start(bot, message, config):
     # bot.reply_to(message, "未检索到你的信息。你无需验证")
     if message.chat.type == "private":
+        # 读取用户
         group_k, key = verifyRedis.read_user(str(message.from_user.id))
         code = botWorker.extract_arg(message.text)
+        # 如果有参数，进行解码覆盖
         if len(code) == 1:
+            PassID = code[0]
             param = binascii.a2b_hex(code[0].encode('ascii')).decode('ascii').split()
-            key = param[0]
-            statu = param[1]
+            if len(param) == 3:
+                key = param[0]
+                statu = param[1]
+                user_id = param[2]
+                if str(user_id) != str(message.from_user.id):
+                    group_k = False
+                if statu in ["member", "left"]:
+                    well_unban = True
+                else:
+                    well_unban = False
         else:
-            statu = "noparam!"
-        if statu in ["member", "left"]:
-            well_unban = True
-        else:
-            well_unban = False
+            PassID = key
+
         if group_k:
             bot.reply_to(message,
-                         f"开始验证群组 `{group_k}`,你有175秒的时间回答下面的问题...\n\nPassID:`{code[0]}`\nAuthID:`{message.from_user.id}`",
+                         f"开始验证群组 `{group_k}`,你有175秒的时间回答下面的问题...\n\nPassID:`{PassID}`\nAuthID:`{message.from_user.id}`",
                          parse_mode='Markdown')
             from CaptchaCore import CaptchaWorker
             load_csonfig()
